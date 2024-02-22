@@ -1,8 +1,8 @@
-Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the list if you have comment edit rights.
+Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the lists if you have edit rights on comments.
 
 Resolving this issue might need an RFC, but I think a summary like this is a good start.
 
-By attempting to resolve this issue I hope to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832.
+My long term goal is to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832 by doing necessary preparations to resolve this issue.
 
 # Reasons to keep `SIG_IGN` the default
 
@@ -10,10 +10,13 @@ By attempting to resolve this issue I hope to remove uncertainties related to ht
 * Using Rust for network programming is more common than for command line utilities [1]
 * It is easier to figure out that `SIG_IGN` is your problem than that `SIG_DFL` is your problem
 
-# Reasons to not change `SIGPIPE` at all by default
+# Reasons to not change `SIGPIPE` at all by default (in 99.9% of cases this means leaving it as `SIG_DFL`)
 
 * Changing `SIGPIPE` disposition is unexpected for a language that prides itself in not having a runtime
 * Make Rust library code behave the same as Rust bin code
+* It is harder to properly handle `SIGPIPE` when its disposition is `SIG_IGN` than when it is `SIG_DFL`
+* seccomp filters don't have to allow `lib::signal`
+* Applications can get the original disposition of `SIGPIPE`
 * 
 
 # Reasons to make `SIG_DFL` the default
