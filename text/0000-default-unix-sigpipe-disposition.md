@@ -4,13 +4,19 @@ Resolving this issue might need an RFC, but I think a summary like this is a goo
 
 My long term goal is to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832 by doing necessary preparations to resolve this issue.
 
-# Reasons to keep `SIG_IGN` the default
+# Keep `SIG_IGN` as the default
+
+## Pros
 
 * If `SIG_DFL` behavior is wanted, it is easy to find `#[unix_sigpipe = "sig_dfl"]` by searching on the internet for ErrorKind::BrokenPipe
 * Keeps Rust behavior more consistent across platforms. Wanting `SIG_DFL` is a in a way a niche unix-specific use case. It makes sense to opt-in to it.
 * Avoid ecosystem churn
 * Using Rust for network programming is more common than for command line utilities [1]
 * It is easier to figure out that `SIG_IGN` is your problem than that `SIG_DFL` is your problem
+
+## Cons
+
+* Writing command line apps with textual output becomes annoying. (But easy to fix with the new attribute)
 
 # Reasons to not change `SIGPIPE` at all by default (in 99.9% of cases this means leaving it as `SIG_DFL`)
 
@@ -42,6 +48,10 @@ Roughly ordered by importance/relevance.
 
 I would like to point out that the fix was not made to make I/O handling magic. Instead, it was considered undesired that a program could suddenly get killed just because you messed around with processes and pipes.
 So my estimation is that SIGPIPE was not `SIG_IGN` _primarily_ because libgreen did so.
+
+> Rust currently resets the signal mask in a child process
+
+Not any more. TODO: link
 
 
 There are some different outcomes here:
