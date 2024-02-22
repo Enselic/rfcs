@@ -6,6 +6,8 @@ My long term goal is to remove uncertainties related to https://github.com/rust-
 
 # Reasons to keep `SIG_IGN` the default
 
+* If `SIG_DFL` behavior is wanted, it is easy to find `#[unix_sigpipe = "sig_dfl"]` by searching on the internet for ErrorKind::BrokenPipe
+* Keeps Rust behavior more consistent across platforms. Wanting `SIG_DFL` is a in a way a niche unix-specific use case. It makes sense to opt-in to it.
 * Avoid ecosystem churn
 * Using Rust for network programming is more common than for command line utilities [1]
 * It is easier to figure out that `SIG_IGN` is your problem than that `SIG_DFL` is your problem
