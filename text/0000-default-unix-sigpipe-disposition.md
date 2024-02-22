@@ -1,3 +1,45 @@
+Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the list if you have comment edit rights.
+
+Resolving this issue might need an RFC, but I think a summary like this is a good start.
+
+By attempting to resolve this issue I hope to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832.
+
+# Reasons to keep `SIG_IGN` the default
+
+* Avoid ecosystem churn
+* Using Rust for network programming is more common than for command line utilities [1]
+* It is easier to figure out that `SIG_IGN` is your problem than that `SIG_DFL` is your problem
+
+# Reasons to not change `SIGPIPE` at all by default
+
+* Changing `SIGPIPE` disposition is unexpected for a language that prides itself in not having a runtime
+* Make Rust library code behave the same as Rust bin code
+* 
+
+# Reasons to make `SIG_DFL` the default
+
+* Fill in later, but I don't think this makes sense to do.
+
+
+If we change the default in a new edition, it will be easy to opt-in to the current behavior by using the `#[unix_sigpipe = "sig_ign"]` attribute.
+
+
+# Drawbacks of current default (`SIGPIPE` is set to `SIG_IGN`)
+
+Roughly ordered by importance/relevance.
+
+* This changes the default behavior of pipes from what people might expect when writing UNIX applications.
+
+[1]: https://blog.rust-lang.org/images/2024-02-rust-survey-2023/technology-domain.png
+
+
+
+
+
+
+
+
+
 - Feature Name: SIGPIPE disposition not changed by default
 - Start Date: 2024-02-18
 - RFC PR: [rust-lang/rfcs#0000](https://github.com/rust-lang/rfcs/pull/0000)
