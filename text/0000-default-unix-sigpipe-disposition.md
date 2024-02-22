@@ -1,3 +1,10 @@
+I think we should keep the default, because
+
+* It is easy to fix with `unix_sigpipe`
+* It reduces inconsistencies between platforms
+* It has been the default since 2014 and changing it would create churn that can't be justified
+* 
+
 Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the lists if you have edit rights on comments.
 
 Resolving this issue might need an RFC, but I think a summary like this is a good start.
@@ -17,10 +24,11 @@ My long term goal is to remove uncertainties related to https://github.com/rust-
 ## Cons
 
 * Writing command line apps with textual output becomes annoying. (But easy to fix with the new attribute)
+* Changing `SIGPIPE` disposition which is process global state is unexpected for a language that prides itself in not having a runtime
+* Rust library code does not behave the same as Rust bin code. If you use non-Rust code that becomes your problem though.
 
 # Reasons to not change `SIGPIPE` at all by default (in 99.9% of cases this means leaving it as `SIG_DFL`)
 
-* Changing `SIGPIPE` disposition is unexpected for a language that prides itself in not having a runtime
 * Make Rust library code behave the same as Rust bin code
 * It is harder to properly handle `SIGPIPE` when its disposition is `SIG_IGN` than when it is `SIG_DFL`
 * seccomp filters don't have to allow `lib::signal`
