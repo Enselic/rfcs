@@ -36,6 +36,30 @@ Roughly ordered by importance/relevance.
 [1]: https://blog.rust-lang.org/images/2024-02-rust-survey-2023/technology-domain.png
 
 
+> This dates back to when Rust had a runtime and a green-threads implementation, and more magic handling of I/O.
+
+I would like to point out that the fix was not made to make I/O handling magic. Instead, it was considered undesired that a program could suddenly get killed just because you messed around with processes and pipes.
+So my estimation is that SIGPIPE was not `SIG_IGN` _primarily_ because libgreen did so.
+
+
+There are some different outcomes here:
+
+## If we decide to keep the default
+
+* We can close this issue after adding documentation (maybe https://github.com/rust-lang/reference/pull/1465 is enough)
+* We can stabilize `#[unix_sigpipe = "sig_dfl"]`
+* We can stabilize `#[unix_sigpipe = "inherit"]` since that will be the only way to minimize `seccomp` filters. We might want to change name to `#[unix_sigpipe = "inherit"]` first
+* We can maybe stabilize `#[unix_sigpipe = "sig_ign"]`. Let's discuss it separately.
+
+## If we decide to change the default
+
+* We can stabilize `#[unix_sigpipe = "sig_ign"]` since we need it to opt-in to the old behavior.
+* We can maybe stabilize `#[unix_sigpipe = "sig_dfl"]`. Let's discuss it separately.
+* We can maybe stabilize `#[unix_sigpipe = "inherit"]`. Let's discuss it separately.
+
+
+
+
 
 
 
