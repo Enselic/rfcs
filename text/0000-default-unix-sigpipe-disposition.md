@@ -1,56 +1,28 @@
-I think we should keep the default, because
+I used to be in the "change default in a new edition" camp. After investigating more in depth, I have changed my mind. I now think we should keep the current default and use `unix_sigpipe` to cover all use cases.
 
-* It is easy to fix with `unix_sigpipe`
-* It reduces inconsistencies between platforms
-* It has been the default since 2014 and changing it would create churn that can't be justified
-* 
+# Arguments against changing the default
 
-Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the lists if you have edit rights on comments.
+* I think the strongest argument against changing the default is that it would make Rust code less portable across platforms. If we changed the default, a test like https://github.com/rust-lang/rust/blob/master/tests/ui/process/sigpipe-should-be-ignored.rs would need to have "if unix: // run-fail, if windows: // run-pass".
 
-Resolving this issue might need an RFC, but I think a summary like this is a good start.
+* Another strong argument against changing the default is that if `SIG_IGN` is active in a program that needs `SIG_DFL`, there are clear indications (`BrokenPipe`) of what the problem is that makes it easy search for solutions. This makes `unix_sigpipe` discoverable. If `SIG_DFL` (or "inherit") is the default, the symptoms are much more subtle and harder to diagnose. The program just suddenly terminates without any output.
 
-My long term goal is to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832 by doing necessary preparations to resolve this issue.
+* Another argument against changing the default is that - according to the 2023 survey [1] - Rust is used more for network/cloud programming than for writing textual command line tools. And networked code want `SIG_IGN`.
 
-# Keep `SIG_IGN` as the default
+* Another argument against changing the default is that the default has been around since 2014. We should not underestimate the churn a new default would create.
 
-## Pros
+# Solutions to problems related to not changing the default
 
-* If `SIG_DFL` behavior is wanted, it is easy to find `#[unix_sigpipe = "sig_dfl"]` by searching on the internet for ErrorKind::BrokenPipe
-* Keeps Rust behavior more consistent across platforms. Wanting `SIG_DFL` is a in a way a niche unix-specific use case. It makes sense to opt-in to it.
-* Avoid ecosystem churn
-* Using Rust for network programming is more common than for command line utilities [1]
-* It is easier to figure out that `SIG_IGN` is your problem than that `SIG_DFL` is your problem
+* For users writing unix-y command line apps, it is easy to discover and use `#[unix_sigpipe = "sig_dfl"]`.
 
-## Cons
+* For users that for ideological reasons don't want the Rust runtime to change process-global state at all, or for users that want minimal seccomp filters, or for users that want to know the original `SIGPIPE` disposition, it is easy to use `#[unix_sigpipe = "inherit"]`.
 
-* Writing command line apps with textual output becomes annoying. (But easy to fix with the new attribute)
-* Changing `SIGPIPE` disposition which is process global state is unexpected for a language that prides itself in not having a runtime
-* Rust library code does not behave the same as Rust bin code. If you use non-Rust code that becomes your problem though.
+* I think TODO sufficiently documents the current default?
 
-# Reasons to not change `SIGPIPE` at all by default (in 99.9% of cases this means leaving it as `SIG_DFL`)
-
-* Make Rust library code behave the same as Rust bin code
-* It is harder to properly handle `SIGPIPE` when its disposition is `SIG_IGN` than when it is `SIG_DFL`
-* seccomp filters don't have to allow `lib::signal`
-* Applications can get the original disposition of `SIGPIPE`
-* 
-
-# Reasons to make `SIG_DFL` the default
-
-* Fill in later, but I don't think this makes sense to do.
-
-
-If we change the default in a new edition, it will be easy to opt-in to the current behavior by using the `#[unix_sigpipe = "sig_ign"]` attribute.
-
-
-# Drawbacks of current default (`SIGPIPE` is set to `SIG_IGN`)
-
-Roughly ordered by importance/relevance.
-
-* This changes the default behavior of pipes from what people might expect when writing UNIX applications.
+* For users that use a non-Rust main and links in Rust library code, we don't have an elegant solution I'm afraid. But since these will typically be C and C++ apps, it will be easy for them to adjust the `SIGPIPE` signal disposition themselves. And by using a non-Rust main, those users are already in some sense on their own and have opted out of the nice and cozy pure Rust world.
 
 [1]: https://blog.rust-lang.org/images/2024-02-rust-survey-2023/technology-domain.png
 
+# Remarks
 
 > This dates back to when Rust had a runtime and a green-threads implementation, and more magic handling of I/O.
 
@@ -79,6 +51,19 @@ There are some different outcomes here:
 
 
 
+
+Here is a summary of the pros and cons of changing the default. I intend to keep it up to date and exhaustive. Feel free to extend the lists if you have edit rights on comments.
+
+Resolving this issue might need an RFC, but I think a summary like this is a good start.
+
+My long term goal is to remove uncertainties related to https://github.com/rust-lang/rust/pull/120832 by doing necessary preparations to resolve this issue.
+
+# Keep `SIG_IGN` as the default
+
+## Pros
+
+
+## Cons
 
 
 
