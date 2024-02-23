@@ -22,16 +22,26 @@ I used to be in the "change default in a new edition" camp. After investigating 
 
 [1]: https://blog.rust-lang.org/images/2024-02-rust-survey-2023/technology-domain.png
 
+# Proposal of what the next steps are
+
+I think we should
+- [ ] Stabilize `#[unix_sigpipe = "sig_dfl"]`: https://github.com/rust-lang/rust/pull/120832
+- [ ] Document the implications of the current default of. I think https://github.com/rust-lang/reference/pull/1465 is sufficient.
+- [ ] Stabilize `#[unix_sigpipe = "inherit"]` after [bike-shedding](https://github.com/rust-lang/rust/pull/120832#issuecomment-1949830375) then name a bit more.
+- [ ] Possibly stabilize `#[unix_sigpipe = "sig_ign"]` if there turns out to be a need for it. It is not clear to me there is a need since that is the default.
+- [ ] Close this issue as resolved.
+
 # Remarks
 
 > This dates back to when Rust had a runtime and a green-threads implementation, and more magic handling of I/O.
 
-I would like to point out that the fix was not made to make I/O handling magic. Instead, it was considered undesired that a program could suddenly get killed just because you messed around with processes and pipes.
-So my estimation is that SIGPIPE was not `SIG_IGN` _primarily_ because libgreen did so.
+I would like to point out that the fix was not made because of green-threads or to make I/O handling magic. It seems to me that it mainly was made to make Rust code more cross-platform. Making the behavior more in line with libgreen was more of a bonus outcome worth a remark, by my estimation.
 
 > Rust currently resets the signal mask in a child process
 
-Not any more. TODO: link
+> The same goes for signal masking. IMO this behavior should just be removed.
+
+The code that messed around with the signal mask was removed 
 
 
 There are some different outcomes here:
